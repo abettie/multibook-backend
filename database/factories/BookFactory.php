@@ -17,7 +17,8 @@ class BookFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'name' => fake()->word().'図鑑',
+            'select_available' => false,
         ];
     }
 }
