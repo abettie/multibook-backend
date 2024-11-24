@@ -13,7 +13,12 @@ return new class extends Migration
     {
         Schema::create('items', function (Blueprint $table) {
             $table->id();
+            $table->integer('book_id')->unsigned()->comment('図鑑ID');
+            $table->string('name', 100)->comment('アイテム名');
+            $table->integer('kind_id')->unsigned()->nullable()->comment('種類ID');
+            $table->string('explanation', 1000)->nullable()->comment('説明');
             $table->timestamps();
+            $table->comment('アイテム');
         });
     }
 

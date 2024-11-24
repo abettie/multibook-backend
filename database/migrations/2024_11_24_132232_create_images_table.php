@@ -13,7 +13,10 @@ return new class extends Migration
     {
         Schema::create('images', function (Blueprint $table) {
             $table->id();
+            $table->integer('item_id')->comment('アイテムID');
+            $table->string('file_name', 100)->comment('ファイル名');
             $table->timestamps();
+            $table->comment('画像');
         });
     }
 

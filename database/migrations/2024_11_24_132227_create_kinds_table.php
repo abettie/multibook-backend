@@ -13,7 +13,10 @@ return new class extends Migration
     {
         Schema::create('kinds', function (Blueprint $table) {
             $table->id();
+            $table->integer('book_id')->unsigned()->comment('図鑑ID');
+            $table->string('name', 100)->comment('種類名');
             $table->timestamps();
+            $table->comment('種類');
         });
     }
 
