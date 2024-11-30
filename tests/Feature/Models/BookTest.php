@@ -18,11 +18,11 @@ class BookTest extends TestCase
     {
         $response = $this->json('GET', 'books');
         $response->assertStatus(200);
-        // 30個(全レコード数)あるか
-        $response->assertJsonCount(30);
+        // 10個(limitデフォルト値)あるか
+        $response->assertJsonCount(10);
 
         $data = $response->json();
-        // 1番目から取ってきているか
+        // 1番目(offsetデフォルト値)から取ってきているか
         $this->assertSame(1, $data[0]['id']);
     }
 

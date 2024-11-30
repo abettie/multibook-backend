@@ -14,40 +14,16 @@ class BookController extends BaseController
      */
     public function index(BookIndexRequest $request)
     {
-        // クエリビルダーを初期化
-        $query = Book::query();
-
         // GETパラメータのlimitとoffsetを取得
-        $limit = $request->query('limit');
-        $offset = $request->query('offset');
+        $limit = $request->query('limit', 10);
+        $offset = $request->query('offset', 0);
 
-        if (!is_null($offset)) {
-            $query->offset((int)$offset);
-        }
+        $result = Book::offset((int)$offset)
+            ->limit((int)$limit)
+            ->with('kinds')
+            ->get();
 
-        if (!is_null($limit)) {
-            $query->limit((int)$limit);
-        }
-
-        $result = $query->get();
-
-        $body = [];
-        foreach ($result as $data) {
-            $row = [];
-            $row['id'] = $data['id'];
-            $row['name'] = $data['name'];
-            $kinds = $data->kinds()->get();
-            $row['kinds'] = [];
-            foreach ($kinds as $kind) {
-                $row['kinds'][] = [
-                    'id' => $kind['id'],
-                    'name' => $kind['name'],
-                ];
-            }
-            $body[] = $row;
-        }
-
-        return $this->customApiResponse($body);
+        return $this->customApiResponse($result);
     }
 
     /**
