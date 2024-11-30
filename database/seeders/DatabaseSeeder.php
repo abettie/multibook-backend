@@ -24,9 +24,9 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        $books = Book::factory(3)->create();
-        $kinds = Kind::factory(15)->recycle($books)->create();
-        $items = Item::factory(30)->recycle([$books, $kinds])->create();
-        $images = Image::factory(150)->recycle($items)->create();
+        $books = Book::factory(30)->create();
+        $kinds = Kind::factory(150)->recycle($books)->create();
+        $items = Item::factory(300)->recycle([$books, $kinds])->create();
+        $images = Image::factory(1500)->recycle($items)->create();
     }
 }
