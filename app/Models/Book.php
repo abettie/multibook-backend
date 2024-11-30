@@ -10,6 +10,8 @@ class Book extends BaseModel
     /** @use HasFactory<\Database\Factories\BookFactory> */
     use HasFactory;
 
+    protected $fillable = ['name'];
+
     /**
      * Get all of the items for the Book
      *

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\BookIndexRequest;
+use App\Http\Requests\BookStoreRequest;
 use App\Models\Book;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -23,15 +24,17 @@ class BookController extends BaseController
             ->with('kinds')
             ->get();
 
-        return $this->customApiResponse($result);
+        return $this->customIndexResponse($result);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(BookStoreRequest $request)
     {
-        //
+        $result = Book::create($request->validated());
+
+        return $this->customStoreResponse($result);
     }
 
     /**
