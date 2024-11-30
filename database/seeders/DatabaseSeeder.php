@@ -9,6 +9,7 @@ use App\Models\Image;
 use App\Models\Kind;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Log;
 
 class DatabaseSeeder extends Seeder
 {
@@ -24,9 +25,12 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        $books = Book::factory(30)->create();
+        $books_no_kinds = Book::factory(10)->create();
+        $books = Book::factory(20)->create();
+        Log::debug($books);
         $kinds = Kind::factory(150)->recycle($books)->create();
-        $items = Item::factory(300)->recycle([$books, $kinds])->create();
-        $images = Image::factory(1500)->recycle($items)->create();
+        $items_no_images = Item::factory(50)->recycle([$books, $kinds])->create();
+        $items = Item::factory(250)->recycle([$books, $kinds])->create();
+        $images = Image::factory(1000)->recycle($items)->create();
     }
 }
