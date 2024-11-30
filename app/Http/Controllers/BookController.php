@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\IndexBookRequest;
+use App\Http\Requests\BookIndexRequest;
 use App\Models\Book;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -12,7 +12,7 @@ class BookController extends BaseController
     /**
      * Display a listing of the resource.
      */
-    public function index(IndexBookRequest $request)
+    public function index(BookIndexRequest $request)
     {
         // クエリビルダーを初期化
         $query = Book::query();

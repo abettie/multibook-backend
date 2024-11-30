@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-class IndexBookRequest extends BaseRequest
+class BookIndexRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.
