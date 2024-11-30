@@ -16,7 +16,7 @@ class BookTest extends TestCase
     #[TestDox('index正常系：パラメータ無し')]
     public function indexWithoutParameters(): void
     {
-        $response = $this->json('GET', 'books');
+        $response = $this->getJson('books');
         $response->assertStatus(200);
         // 10個(limitデフォルト値)あるか
         $response->assertJsonCount(10);
@@ -30,7 +30,7 @@ class BookTest extends TestCase
     #[TestDox('index正常系：パラメータ有り')]
     public function indexWithParameters(): void
     {
-        $response = $this->json('GET', 'books?limit=10&offset=4');
+        $response = $this->getJson('books?limit=10&offset=4');
         $response->assertStatus(200);
         // 10個あるか
         $response->assertJsonCount(10);
@@ -44,7 +44,7 @@ class BookTest extends TestCase
     #[TestDox('index正常系：kinds有りデータ')]
     public function indexWithKindsData(): void
     {
-        $response = $this->json('GET', 'books?limit=2&offset=11');
+        $response = $this->getJson('books?limit=2&offset=11');
         $response->assertStatus(200);
 
         $data = $response->json();
@@ -59,7 +59,7 @@ class BookTest extends TestCase
     #[TestDox('index正常系：kinds無しデータ')]
     public function indexWithoutKindsData(): void
     {
-        $response = $this->json('GET', 'books?limit=2&offset=1');
+        $response = $this->getJson('books?limit=2&offset=1');
 
         $response->assertStatus(200);
         $data = $response->json();
@@ -76,7 +76,7 @@ class BookTest extends TestCase
     #[TestWith([5, 'a'])]
     public function indexWithInvalidParam($limit, $offset): void
     {
-        $response = $this->json('GET', "books?limit={$limit}&offset={$offset}");
+        $response = $this->getJson("books?limit={$limit}&offset={$offset}");
 
         $response->assertStatus(422);
     }
