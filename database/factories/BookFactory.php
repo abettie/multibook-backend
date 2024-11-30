@@ -18,7 +18,6 @@ class BookFactory extends Factory
     {
         return [
             'name' => fake()->word().'図鑑',
-            'select_available' => false,
         ];
     }
 }
