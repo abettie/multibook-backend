@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\BookIndexRequest;
 use App\Http\Requests\BookStoreRequest;
+use App\Http\Requests\BookUpdateRequest;
 use App\Models\Book;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -42,15 +43,17 @@ class BookController extends BaseController
      */
     public function show(Book $book)
     {
-        //
+        return $this->customShowResponse($book);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Book $book)
+    public function update(BookUpdateRequest $request, Book $book)
     {
-        //
+        $book->update($request->validated());
+
+        return $this->customUpdateResponse($book);
     }
 
     /**
@@ -58,6 +61,8 @@ class BookController extends BaseController
      */
     public function destroy(Book $book)
     {
-        //
+        $book->delete();
+
+        return $this->customDestroyResponse($book);
     }
 }

@@ -98,4 +98,75 @@ class BookTest extends TestCase
         $response = $this->postJson('books', ['name' => fake()->realText(51)]);
         $response->assertStatus(422);
     }
+
+    #[Test]
+    #[TestDox('show正常系')]
+    #[TestWith([1])]
+    #[TestWith([11])]
+    #[TestWith([30])]
+    public function show($id): void
+    {
+        $response = $this->getJson("books/{$id}");
+        $response->assertStatus(200);
+        $response->assertJsonFragment(['id' => $id]);
+    }
+
+    #[Test]
+    #[TestDox('show異常系：不正パラメータ')]
+    #[TestWith(['a'])]
+    #[TestWith(['.'])]
+    #[TestWith(['-'])]
+    public function showWithInvalidParam($id): void
+    {
+        $response = $this->getJson("books/{$id}");
+        $response->assertStatus(404);
+    }
+
+    #[Test]
+    #[TestDox('update正常系')]
+    #[TestWith([1, '図鑑1'])]
+    #[TestWith([11, '図鑑11'])]
+    #[TestWith([30, '図鑑30'])]
+    public function update($id, $name): void
+    {
+        $response = $this->putJson("books/{$id}", ['name' => $name]);
+        $response->assertStatus(200);
+        $response->assertJsonFragment(['id' => $id]);
+    }
+
+    #[Test]
+    #[TestDox('update異常系：不正パラメータ')]
+    public function updateWithInvalidParam(): void
+    {
+        $response = $this->putJson("books/a", ['name' => '図鑑a']);
+        $response->assertStatus(404);
+        $response = $this->putJson("books/2", ['name' => fake()->realText(50)]);
+        $response->assertStatus(200);
+        $response->assertJsonFragment(['id' => 2]);
+        $response = $this->putJson("books/2", ['name' => fake()->realText(51)]);
+        $response->assertStatus(422);
+    }
+
+    #[Test]
+    #[TestDox('destroy正常系')]
+    #[TestWith([1])]
+    #[TestWith([11])]
+    #[TestWith([30])]
+    public function destroy($id): void
+    {
+        $response = $this->deleteJson("books/{$id}");
+        $response->assertStatus(200);
+        $response->assertJsonFragment(['id' => $id]);
+    }
+
+    #[Test]
+    #[TestDox('destroy異常系：不正パラメータ')]
+    #[TestWith(['a'])]
+    #[TestWith(['.'])]
+    #[TestWith(['-'])]
+    public function destroyWithInvalidParam($id): void
+    {
+        $response = $this->deleteJson("books/{$id}");
+        $response->assertStatus(404);
+    }
 }

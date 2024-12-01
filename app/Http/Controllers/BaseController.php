@@ -18,4 +18,19 @@ class BaseController extends Controller
     {
         return response()->json($body, 200);
     }
+
+    protected function customShowResponse (Model $body)
+    {
+        return response()->json($body, 200);
+    }
+
+    protected function customUpdateResponse (Model $body)
+    {
+        return response()->json($body, 200);
+    }
+
+    protected function customDestroyResponse (Model $body)
+    {
+        return response()->json($body, 200);
+    }
 }
