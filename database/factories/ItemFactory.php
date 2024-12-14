@@ -25,4 +25,18 @@ class ItemFactory extends Factory
             'explanation' => fake()->sentence(5),
         ];
     }
+
+    /**
+     * kindの無いItemを生成
+     * 
+     * @return static The current factory instance with the custom state applied.
+     */
+    public function noKind(): static
+    {
+        return $this->state(function (array $attributes) {
+            return [
+                'kind_id' => null,
+            ];
+        });
+    }
 }
