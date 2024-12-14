@@ -52,7 +52,6 @@ class BookTest extends TestCase
         $data = $response->json();
         foreach ($data as $row) {
             // kinds要素があり、要素1個以上の配列か
-            $this->assertTrue(isset($row['kinds']));
             $this->assertNotEmpty($row['kinds']);
         }
     }
@@ -67,7 +66,6 @@ class BookTest extends TestCase
         $data = $response->json();
         foreach ($data as $row) {
             // kinds要素があり、空配列か
-            $this->assertTrue(isset($row['kinds']));
             $this->assertEmpty($row['kinds']);
         }
     }

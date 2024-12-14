@@ -11,6 +11,8 @@ class Item extends BaseModel
     /** @use HasFactory<\Database\Factories\ItemFactory> */
     use HasFactory;
 
+    protected $fillable = ['book_id', 'name', 'kind_id', 'explanation'];
+
     /**
      * Get the book that owns the Item
      *
