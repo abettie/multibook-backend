@@ -12,6 +12,8 @@ use Tests\TestCase;
 
 class BookTest extends TestCase
 {
+    use RefreshDatabase;
+
     #[Test]
     #[TestDox('index正常系：パラメータ無し')]
     public function indexWithoutParameters(): void
