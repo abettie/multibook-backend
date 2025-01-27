@@ -1,0 +1,38 @@
+name: Laravel
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  laravel-tests:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: shivammathur/setup-php@9e72090525849c5e82e596468b86eb55e9cc5401
+      with:
+        php-version: '8.3.6'
+    - uses: shogo82148/actions-setup-mysql@7bb56b6ec54579fca90e6ff5c35f8816d0ceedb5
+      with:
+        mysql-version: '8.4'
+        my-cnf: |
+          character-set-server = utf8mb4
+          collation_server = utf8mb4_bin
+    - name: Create Database
+      run: mysql -uroot -e 'CREATE DATABASE multibook_backend_test;'
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+    - name: Copy .env
+      run: php -r "file_exists('.env') || copy('.env.github_actions', '.env');" 
+    - name: Install Dependencies
+      run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+    - name: Generate key
+      run: php artisan key:generate
+    - name: Copy .env with encryption key
+      run: php -r "file_exists('.env') && copy('.env', '.env.testing');" 
+    - name: Directory Permissions
+      run: chmod -R 777 storage bootstrap/cache
+    - name: Execute tests (Unit and Feature tests) via PHPUnit/Pest
+      run: php artisan test --testdox
