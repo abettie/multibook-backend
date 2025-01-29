@@ -74,6 +74,7 @@ class BookTest extends TestCase
     #[TestDox('index異常系：不正パラメータ')]
     #[TestWith(['a', 11])]
     #[TestWith([5, 'a'])]
+    #[TestWith(['a', 'a'])]
     public function indexWithInvalidParam($limit, $offset): void
     {
         $response = $this->getJson("books?limit={$limit}&offset={$offset}");
@@ -109,6 +110,15 @@ class BookTest extends TestCase
         $response = $this->getJson("books/{$id}");
         $response->assertStatus(200);
         $response->assertJsonFragment(['id' => $id]);
+    }
+
+    #[Test]
+    #[TestDox('show異常系：該当データ無し')]
+    #[TestWith([10000])]
+    public function showWithNoDataParam($id): void
+    {
+        $response = $this->getJson("books/{$id}");
+        $response->assertStatus(404);
     }
 
     #[Test]

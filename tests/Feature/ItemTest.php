@@ -132,6 +132,15 @@ class ItemTest extends TestCase
     }
 
     #[Test]
+    #[TestDox('show異常系：該当データ無し')]
+    #[TestWith([10000])]
+    public function showWithNoDataParam($id): void
+    {
+        $response = $this->getJson("items/{$id}");
+        $response->assertStatus(404);
+    }
+
+    #[Test]
     #[TestDox('show異常系：不正パラメータ')]
     #[TestWith(['a'])]
     #[TestWith(['.'])]
