@@ -155,6 +155,8 @@ class BookTest extends TestCase
         $response->assertJsonFragment(['id' => 2]);
         $response = $this->putJson("books/2", ['name' => fake()->realText(51)]);
         $response->assertStatus(422);
+        $response = $this->putJson("books/2");
+        $response->assertStatus(422);
     }
 
     #[Test]

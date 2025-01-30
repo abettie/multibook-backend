@@ -186,6 +186,8 @@ class ItemTest extends TestCase
         $response->assertJsonFragment(['id' => 2]);
         $response = $this->putJson("items/2", ['explanation' => fake()->realText(1001)]);
         $response->assertStatus(422);
+        $response = $this->putJson("items/2");
+        $response->assertStatus(200);
     }
 
     #[Test]
