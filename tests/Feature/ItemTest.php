@@ -123,7 +123,7 @@ class ItemTest extends TestCase
     #[TestDox('show正常系')]
     #[TestWith([1])]
     #[TestWith([11])]
-    #[TestWith([100])]
+    #[TestWith([101])]
     public function show($id): void
     {
         $response = $this->getJson("items/{$id}");

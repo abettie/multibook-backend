@@ -43,6 +43,7 @@ class BookController extends BaseController
      */
     public function show(Book $book)
     {
+        $book->load('kinds');
         return $this->customShowResponse($book);
     }
 

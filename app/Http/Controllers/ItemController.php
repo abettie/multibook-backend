@@ -44,6 +44,7 @@ class ItemController extends BaseController
      */
     public function show(Item $item)
     {
+        $item->load(['book', 'kind', 'images']);
         return $this->customShowResponse($item);
     }
 
