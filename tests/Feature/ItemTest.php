@@ -43,10 +43,10 @@ class ItemTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('index正常系：kind有りデータ')]
+    #[TestDox('index正常系：kind, image有りデータ')]
     public function indexWithKindsData(): void
     {
-        $response = $this->getJson('items?limit=2&offset=51');
+        $response = $this->getJson('items?limit=2&offset=101');
         $response->assertStatus(200);
 
         $data = $response->json();
