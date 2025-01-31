@@ -28,7 +28,7 @@ class BookController extends BaseController
         ]
     )]
     #[OA\Schema(
-        schema: 'BookWithKinds',
+        schema: 'BookWithRelations',
         type: 'object',
         properties: [
             new OA\Property(property: 'id', type: 'integer', example: 1),
@@ -42,7 +42,8 @@ class BookController extends BaseController
      */
     #[OA\Get(
         path: '/books',
-        operationId: 'index',
+        operationId: 'bookIndex',
+        tags: ['books'],
         summary: '図鑑一覧取得API',
         parameters: [
             new OA\Parameter(name: 'limit', in: 'query', required: false, description: '取得件数', schema: new OA\Schema(type: 'integer', default: 10)),
@@ -55,7 +56,7 @@ class BookController extends BaseController
                 content: new OA\JsonContent(
                     type: 'array',
                     items: new OA\Items(
-                        ref: '#/components/schemas/BookWithKinds'
+                        ref: '#/components/schemas/BookWithRelations'
                     )
                 )
             )
@@ -80,7 +81,8 @@ class BookController extends BaseController
      */
     #[OA\Post(
         path: '/books',
-        operationId: 'store',
+        operationId: 'bookStore',
+        tags: ['books'],
         summary: '図鑑登録API',
         requestBody: new OA\RequestBody(
             required: true,
@@ -112,7 +114,8 @@ class BookController extends BaseController
      */
     #[OA\Get(
         path: '/books/{id}',
-        operationId: 'show',
+        operationId: 'bookShow',
+        tags: ['books'],
         summary: '図鑑詳細取得API',
         parameters: [
             new OA\Parameter(name: 'id', in: 'path', required: true, description: '図鑑ID', schema: new OA\Schema(type: 'integer'))
@@ -122,7 +125,7 @@ class BookController extends BaseController
                 response: '200',
                 description: 'Success',
                 content: new OA\JsonContent(
-                    ref: '#/components/schemas/BookWithKinds'
+                    ref: '#/components/schemas/BookWithRelations'
                 )
             )
         ]
@@ -138,7 +141,8 @@ class BookController extends BaseController
      */
     #[OA\Put(
         path: '/books/{id}',
-        operationId: 'update',
+        operationId: 'bookUpdate',
+        tags: ['books'],
         summary: '図鑑更新API',
         parameters: [
             new OA\Parameter(name: 'id', in: 'path', required: true, description: '図鑑ID', schema: new OA\Schema(type: 'integer'))
@@ -173,7 +177,8 @@ class BookController extends BaseController
      */
     #[OA\Delete(
         path: '/books/{id}',
-        operationId: 'destroy',
+        operationId: 'bookDestroy',
+        tags: ['books'],
         summary: '図鑑削除API',
         parameters: [
             new OA\Parameter(name: 'id', in: 'path', required: true, description: '図鑑ID', schema: new OA\Schema(type: 'integer'))
