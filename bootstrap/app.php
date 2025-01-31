@@ -11,7 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        if ($_SERVER['HTTP_HOST'] ?? '' === 'localhost:8000') {
+            // swaggerのためのCSRFトークンチェックを無効化
+            $middleware->validateCsrfTokens(except: ['*']);
+        }
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
