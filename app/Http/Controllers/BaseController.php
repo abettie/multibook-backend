@@ -4,8 +4,17 @@ namespace App\Http\Controllers;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request;
+use OpenApi\Attributes as OA;
 
+#[OA\Info(
+    title: 'マルチ図鑑API',
+    version: '0.1.0',
+    description: 'マルチ図鑑APIの仕様書です。'
+)]
+#[OA\Server(
+    url: 'http://localhost:8000',
+    description: '開発環境'
+)]
 class BaseController extends Controller
 {
     protected function customIndexResponse (Collection $body)
