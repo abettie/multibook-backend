@@ -23,6 +23,8 @@ class BookStoreRequest extends FormRequest
     {
         return [
             'name' => 'required|max:50',
+            'kinds' => 'array',
+            'kinds.*.name' => 'required|max:100',
         ];
     }
 }

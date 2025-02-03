@@ -42,4 +42,9 @@ class BaseController extends Controller
     {
         return response()->json($body, 200);
     }
+
+    protected function customErrorResponse (string $message)
+    {
+        return response()->json(['message' => $message], 400);
+    }
 }
