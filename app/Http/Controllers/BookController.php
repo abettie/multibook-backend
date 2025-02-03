@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\DataException;
 use App\Http\Requests\BookIndexRequest;
 use App\Http\Requests\BookStoreRequest;
 use App\Http\Requests\BookUpdateRequest;
 use App\Models\Book;
+use App\Models\Item;
+use App\Models\Kind;
+use Illuminate\Log\Logger;
+use Illuminate\Support\Facades\DB;
 use OpenApi\Attributes as OA;
 
 class BookController extends BaseController
@@ -88,7 +93,13 @@ class BookController extends BaseController
             required: true,
             content: new OA\JsonContent(
                 properties: [
-                    new OA\Property(property: 'name', type: 'string', description: '図鑑名', example: '犬図鑑')
+                    new OA\Property(property: 'name', type: 'string', description: '図鑑名', example: '芸能人図鑑'),
+                    new OA\Property(property: 'kinds', type: 'array', items: new OA\Items(
+                        type: 'object',
+                        properties: [
+                            new OA\Property(property: 'name', type: 'string', description: '事務所名', example: 'マセキ芸能社')
+                        ]
+                    ))
                 ]
             )
         ),
@@ -104,9 +115,17 @@ class BookController extends BaseController
     )]
     public function store(BookStoreRequest $request)
     {
-        $result = Book::create($request->validated());
-
-        return $this->customStoreResponse($result);
+        $reqAll = $request->validated();
+        $reqBook = [
+            'name' => $reqAll['name']
+        ];
+        $reqKinds = $reqAll['kinds'];
+        $res = DB::transaction(function () use ($reqBook, $reqKinds) {
+            $book = Book::create($reqBook);
+            $book->kinds()->createMany($reqKinds);
+            return $book;
+        });
+        return $this->customStoreResponse($res);
     }
 
     /**
@@ -151,7 +170,14 @@ class BookController extends BaseController
             required: true,
             content: new OA\JsonContent(
                 properties: [
-                    new OA\Property(property: 'name', type: 'string', description: '図鑑名', example: '犬図鑑')
+                    new OA\Property(property: 'name', type: 'string', description: '図鑑名', example: '犬図鑑'),
+                    new OA\Property(property: 'kinds', type: 'array', items: new OA\Items(
+                        type: 'object',
+                        properties: [
+                            new OA\Property(property: 'id', type: 'int', description: '事務所ID', example: '1'),
+                            new OA\Property(property: 'name', type: 'string', description: '事務所名', example: 'マセキ芸能社')
+                        ]
+                    ))
                 ]
             )
         ),
@@ -167,9 +193,45 @@ class BookController extends BaseController
     )]
     public function update(BookUpdateRequest $request, Book $book)
     {
-        $book->update($request->validated());
+        $reqAll = $request->validated();
+        $reqBook = [
+            'name' => $reqAll['name']
+        ];
+        $reqKinds = $reqAll['kinds'];
+        $res = DB::transaction(function () use ($book, $reqBook, $reqKinds) {
+            $book->update($reqBook);
+            // 種類IDリストを取得
+            $dbKindsIdList = $book->kinds()->pluck('id');
 
-        return $this->customUpdateResponse($book);
+            $reqKindsIdList = collect($reqKinds)
+                ->filter(fn($reqKind) => isset($reqKind['id']))
+                ->map(fn($reqKind) => $reqKind['id']);
+
+            if ($reqKindsIdList->diff($dbKindsIdList)->isNotEmpty()) {
+                throw new DataException('更新対象の種類が存在しません');
+            }
+
+            $delKindsIdList = $dbKindsIdList->diff($reqKindsIdList);
+            // 削除対象の種類IDが使用中かチェック
+            if (Item::whereIn('kind_id', $delKindsIdList)->exists()) {
+                throw new DataException('削除対象の種類が使用中です');
+            }
+
+            // 削除
+            Kind::destroy($delKindsIdList->toArray());
+
+            // 更新/新規登録
+            foreach ($reqKinds as $reqKind) {
+                if ($reqKind['id']) {
+                    Kind::updateOrCreate(['id' => $reqKind['id']], $reqKind);
+                } else {
+                    $book->kinds()->create($reqKind);
+                }
+            }
+
+            return $book;
+        });
+        return $this->customUpdateResponse($res);
     }
 
     /**
@@ -195,8 +257,15 @@ class BookController extends BaseController
     )]
     public function destroy(Book $book)
     {
-        $book->delete();
-
-        return $this->customDestroyResponse($book);
+        $res = DB::transaction(function () use ($book) {
+            // 削除対象の図鑑IDが使用中かチェック
+            if ($book->items()->exists()) {
+                throw new DataException('削除対象の図鑑が使用中です');
+            }
+            $book->kinds()->delete();
+            $book->delete();
+            return $book;
+        });
+        return $this->customDestroyResponse($res);
     }
 }

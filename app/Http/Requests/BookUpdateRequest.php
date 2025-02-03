@@ -23,6 +23,9 @@ class BookUpdateRequest extends FormRequest
     {
         return [
             'name' => 'required|max:50',
+            'kinds' => 'array',
+            'kinds.*.id' => 'nullable|integer',
+            'kinds.*.name' => 'required|max:100',
         ];
     }
 }

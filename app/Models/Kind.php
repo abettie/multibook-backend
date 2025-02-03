@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Kind extends BaseModel
 {
+    protected $fillable = ['name'];
+
     /** @use HasFactory<\Database\Factories\KindFactory> */
     use HasFactory;
 
