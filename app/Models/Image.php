@@ -10,6 +10,8 @@ class Image extends BaseModel
     /** @use HasFactory<\Database\Factories\ImageFactory> */
     use HasFactory;
 
+    protected $fillable = ['item_id', 'file_name'];
+
     /**
      * Get the item that owns the Image
      *
