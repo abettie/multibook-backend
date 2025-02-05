@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\DataException;
 use App\Http\Requests\ItemIndexRequest;
 use App\Http\Requests\ItemStoreRequest;
 use App\Http\Requests\ItemUpdateRequest;
 use App\Models\Item;
+use Illuminate\Support\Facades\DB;
 use OpenApi\Attributes as OA;
 
 class ItemController extends BaseController
@@ -210,8 +212,14 @@ class ItemController extends BaseController
     )]
     public function destroy(Item $item)
     {
-        $item->delete();
-
-        return $this->customDestroyResponse($item);
+        $res = DB::transaction(function () use ($item) {
+            // 削除対象のアイテムIDに画像が残っているかチェック
+            if ($item->images()->exists()) {
+                throw new DataException('削除対象のアイテムに画像がまだあります');
+            }
+            $item->delete();
+            return $item;
+        });
+        return $this->customDestroyResponse($res);
     }
 }
