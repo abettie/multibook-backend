@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
 
         $books_no_kinds = Book::factory(10)->create();
         $books = Book::factory(20)->create();
+        $books_no_items = Book::factory(10)->create();
         $kinds = Kind::factory(150)->recycle($books)->create();
         $items_no_kinds = Item::factory(50)->recycle([$books_no_kinds])->noKind()->create();
         $items_no_images = Item::factory(50)->recycle([$books, $kinds])->create();
