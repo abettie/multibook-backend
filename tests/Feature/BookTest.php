@@ -113,7 +113,7 @@ class BookTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('store正常系 - name桁数ギリギリ')]
+    #[TestDox('store正常系 - name文字数ギリギリ')]
     public function storeWithLongName(): void
     {
         $response = $this->postJson('books', ['name' => fake()->realText(50), 'kinds' => [['name' => '大型犬'], ['name' => '中型犬']]]);
@@ -121,7 +121,7 @@ class BookTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('store正常系 - kindsのname桁数ギリギリ')]
+    #[TestDox('store正常系 - kindsのname文字数ギリギリ')]
     public function storeWithLongKindsName(): void
     {
         $response = $this->postJson('books', ['name' => '犬図鑑', 'kinds' => [
@@ -141,7 +141,7 @@ class BookTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('store異常系 - name桁数オーバー')]
+    #[TestDox('store異常系 - name文字数オーバー')]
     public function storeWithOverName(): void
     {
         $response = $this->postJson('books', ['name' => fake()->realText(51)]);
@@ -161,7 +161,7 @@ class BookTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('store異常系 - kindsのname桁数オーバー')]
+    #[TestDox('store異常系 - kindsのname文字数オーバー')]
     public function storeWithOverKindsName(): void
     {
         $response = $this->postJson('books', ['name' => '犬図鑑', 'kinds' => [
@@ -214,7 +214,7 @@ class BookTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('update正常系 - name桁数ギリギリ')]
+    #[TestDox('update正常系 - name文字数ギリギリ')]
     public function updateWithLongName(): void
     {
         $response = $this->putJson("books/{$this->book->id}", ['name' => fake()->realText(50), 'kinds' => $this->kinds->toArray()]);
@@ -269,7 +269,7 @@ class BookTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('update異常系 - name桁数オーバー')]
+    #[TestDox('update異常系 - name文字数オーバー')]
     public function updateWithOverName(): void
     {
         $response = $this->putJson("books/{$this->book->id}", ['name' => fake()->realText(51), 'kinds' => $this->kinds->toArray()]);
