@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Models;
 
+use App\Models\Book;
+use App\Models\Item;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Log;
@@ -13,6 +15,17 @@ use Tests\TestCase;
 class BookTest extends TestCase
 {
     use RefreshDatabase;
+
+    private Book $book;
+    private $kinds;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->book = Book::find(15);
+        $this->kinds = $this->book->kinds->pluck('id')->map(fn($id) => ['id' => $id, 'name' => '種類' . $id]);
+    }
 
     #[Test]
     #[TestDox('index正常系：パラメータ無し')]
@@ -134,28 +147,107 @@ class BookTest extends TestCase
 
     #[Test]
     #[TestDox('update正常系')]
-    #[TestWith([1, '図鑑1'])]
-    #[TestWith([11, '図鑑11'])]
-    #[TestWith([30, '図鑑30'])]
-    public function update($id, $name): void
+    public function update(): void
     {
-        $response = $this->putJson("books/{$id}", ['name' => $name]);
+        $response = $this->putJson("books/{$this->book->id}", ['name' => '単体テスト', 'kinds' => $this->kinds->toArray()]);
         $response->assertStatus(200);
-        $response->assertJsonFragment(['id' => $id]);
+        $response->assertJsonFragment(['id' => $this->book->id]);
     }
 
     #[Test]
-    #[TestDox('update異常系：不正パラメータ')]
-    public function updateWithInvalidParam(): void
+    #[TestDox('update正常系 - name桁数ギリギリ')]
+    public function updateWithLongName(): void
     {
-        $response = $this->putJson("books/a", ['name' => '図鑑a']);
-        $response->assertStatus(404);
-        $response = $this->putJson("books/2", ['name' => fake()->realText(50)]);
+        $response = $this->putJson("books/{$this->book->id}", ['name' => fake()->realText(50), 'kinds' => $this->kinds->toArray()]);
         $response->assertStatus(200);
-        $response->assertJsonFragment(['id' => 2]);
-        $response = $this->putJson("books/2", ['name' => fake()->realText(51)]);
+        $response->assertJsonFragment(['id' => $this->book->id]);
+    }
+
+    #[Test]
+    #[TestDox('update正常系 - kinds追加')]
+    public function updateWithAddKinds(): void
+    {
+        $response = $this->putJson("books/{$this->book->id}", ['name' => '単体テスト', 'kinds' => $this->kinds->collect()->push(['name' => '新規種類'])->toArray()]);
+        $response->assertStatus(200);
+    }
+
+    #[Test]
+    #[TestDox('update正常系 - kinds削除')]
+    public function updateWithDeleteKinds(): void
+    {
+        // kinds最後の要素のID取得
+        $lastKindId = $this->kinds->collect()->last()['id'];
+        // 該当のkindを設定しているItemを削除
+        Item::where('kind_id', $lastKindId)->delete();
+        // kinds削除
+        $kindsWithoutLast = $this->kinds->collect()->filter(fn($kind) => $kind['id'] !== $lastKindId)->toArray();
+        $response = $this->putJson("books/{$this->book->id}", ['name' => '単体テスト', 'kinds' => $kindsWithoutLast]);
+        $response->assertStatus(200);
+    }
+
+    #[Test]
+    #[TestDox('update異常系 - id無し')]
+    public function updateWithoutId(): void
+    {
+        $response = $this->putJson("books", ['name' => '図鑑a', 'kinds' => $this->kinds->toArray()]);
+        $response->assertStatus(405);
+    }
+
+    #[Test]
+    #[TestDox('update異常系 - id不正')]
+    public function updateWithInvalidId(): void
+    {
+        $response = $this->putJson("books/a", ['name' => '図鑑a', 'kinds' => $this->kinds->toArray()]);
+        $response->assertStatus(404);
+    }
+
+    #[Test]
+    #[TestDox('update異常系 - name無し')]
+    public function updateWithoutName(): void
+    {
+        $response = $this->putJson("books/{$this->book->id}", ['kinds' => $this->kinds->toArray()]);
         $response->assertStatus(422);
-        $response = $this->putJson("books/2");
+    }
+
+    #[Test]
+    #[TestDox('update異常系 - name桁数オーバー')]
+    public function updateWithOverName(): void
+    {
+        $response = $this->putJson("books/{$this->book->id}", ['name' => fake()->realText(51), 'kinds' => $this->kinds->toArray()]);
+        $response->assertStatus(422);
+    }
+
+    #[Test]
+    #[TestDox('update異常系 - kindsのid不正')]
+    public function updateWithInvalidKindsId(): void
+    {
+        $response = $this->putJson("books/{$this->book->id}", ['name' => fake()->realText(50), 'kinds' => ['id' => 'a', 'name' => '種類a']]); 
+        $response->assertStatus(422);
+    }
+
+    #[Test]
+    #[TestDox('update異常系 - bookと紐づかないkindを指定')]
+    public function updateWithNotRelatedKinds(): void
+    {
+        $response = $this->putJson("books/{$this->book->id}", ['name' => fake()->realText(50), 'kinds' => ['id' => 1, 'name' => '種類1']]); 
+        $response->assertStatus(422);
+    }
+
+    #[Test]
+    #[TestDox('update異常系 - kindsのname無し')]
+    public function updateWithoutKindsName(): void
+    {
+        $kindsWithoutName = $this->kinds->toArray();
+        unset($kindsWithoutName[0]['name']);
+        $response = $this->putJson("books/{$this->book->id}", ['name' => fake()->realText(50), 'kinds' => $kindsWithoutName]); 
+        $response->assertStatus(422);
+    }
+
+    #[Test]
+    #[TestDox('update異常系 - id以外のパラメータ無し')]
+    public function updateWithoutPutParam(): void
+    {
+        $response = $this->putJson("books/{$this->book->id}");
         $response->assertStatus(422);
     }
 
@@ -172,7 +264,7 @@ class BookTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('destroy異常系：不正パラメータ')]
+    #[TestDox('destroy異常系 - 不正パラメータ')]
     #[TestWith(['a'])]
     #[TestWith(['.'])]
     #[TestWith(['-'])]
