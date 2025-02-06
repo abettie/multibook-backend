@@ -9,7 +9,6 @@ use App\Http\Requests\BookUpdateRequest;
 use App\Models\Book;
 use App\Models\Item;
 use App\Models\Kind;
-use Illuminate\Log\Logger;
 use Illuminate\Support\Facades\DB;
 use OpenApi\Attributes as OA;
 
@@ -222,11 +221,11 @@ class BookController extends BaseController
 
             // 更新/新規登録
             foreach ($reqKinds as $reqKind) {
-                if ($reqKind['id']) {
-                    Kind::updateOrCreate(['id' => $reqKind['id']], $reqKind);
-                } else {
-                    $book->kinds()->create($reqKind);
-                }
+                $reqKind['book_id'] = $book->id;
+                Kind::updateOrCreate(
+                    ['id' => $reqKind['id'] ?? null],
+                    $reqKind
+                );
             }
 
             return $book;
