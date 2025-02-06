@@ -20,24 +20,18 @@ class ItemTest extends TestCase
         $response->assertStatus(200);
         // 10個(limitデフォルト値)あるか
         $response->assertJsonCount(10);
-
-        $data = $response->json();
         // 1番目(offsetデフォルト値)から取ってきているか
-        $this->assertSame(1, $data[0]['id']);
+        $response->assertJsonPath('0.id', 1);
     }
 
     #[Test]
     #[TestDox('index正常系 - パラメータ有り')]
     public function indexWithParameters(): void
     {
-        $response = $this->getJson('items?limit=10&offset=4');
+        $response = $this->getJson('items?limit=20&offset=4');
         $response->assertStatus(200);
-        // 10個あるか
-        $response->assertJsonCount(10);
-
-        $data = $response->json();
-        // 5番目から取ってきているか
-        $this->assertSame(5, $data[0]['id']);
+        $response->assertJsonCount(20);
+        $response->assertJsonPath('0.id', 5);
     }
 
     #[Test]
@@ -46,13 +40,9 @@ class ItemTest extends TestCase
     {
         $response = $this->getJson('items?limit=2&offset=101');
         $response->assertStatus(200);
-
-        $data = $response->json();
-        foreach ($data as $row) {
-            // kinds, image要素があり、要素1個以上の配列か
-            $this->assertNotEmpty($row['kind']);
-            $this->assertNotEmpty($row['images']);
-        }
+        // kinds, image要素があり、要素1個以上の配列か
+        $response->assertJsonPath('0.kind', fn($kind) => isset($kind['id']) && isset($kind['name']) && isset($kind['book_id']));
+        $response->assertJsonPath('0.images', fn($images) => is_array($images) && count($images) > 0);
     }
 
     #[Test]
@@ -61,13 +51,8 @@ class ItemTest extends TestCase
     {
         $response = $this->getJson('items?limit=2&offset=1');
         $response->assertStatus(200);
-
-        $data = $response->json();
-        foreach ($data as $row) {
-            // kinds, image要素があり、空配列か
-            $this->assertEmpty($row['kind']);
-            $this->assertEmpty($row['images']);
-        }
+        $response->assertJsonPath('0.kind', fn($kind) => is_null($kind));
+        $response->assertJsonPath('0.images', fn($images) => is_array($images) && count($images) === 0);
     }
 
     #[Test]

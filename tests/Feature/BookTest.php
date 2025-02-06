@@ -33,24 +33,18 @@ class BookTest extends TestCase
         $response->assertStatus(200);
         // 10個(limitデフォルト値)あるか
         $response->assertJsonCount(10);
-
-        $data = $response->json();
         // 1番目(offsetデフォルト値)から取ってきているか
-        $this->assertSame(1, $data[0]['id']);
+        $response->assertJsonPath('0.id', 1);
     }
 
     #[Test]
     #[TestDox('index正常系 - パラメータ有り')]
     public function indexWithParameters(): void
     {
-        $response = $this->getJson('books?limit=10&offset=4');
+        $response = $this->getJson('books?limit=20&offset=4');
         $response->assertStatus(200);
-        // 10個あるか
-        $response->assertJsonCount(10);
-
-        $data = $response->json();
-        // 5番目から取ってきているか
-        $this->assertSame(5, $data[0]['id']);
+        $response->assertJsonCount(20);
+        $response->assertJsonPath('0.id', 5);
     }
 
     #[Test]
@@ -59,12 +53,8 @@ class BookTest extends TestCase
     {
         $response = $this->getJson('books?limit=2&offset=11');
         $response->assertStatus(200);
-
-        $data = $response->json();
-        foreach ($data as $row) {
-            // kinds要素があり、要素1個以上の配列か
-            $this->assertNotEmpty($row['kinds']);
-        }
+        // kinds要素があり、要素1個以上の配列か
+        $response->assertJsonPath('0.kinds', fn($kinds) => count($kinds) > 0);
     }
 
     #[Test]
@@ -73,12 +63,8 @@ class BookTest extends TestCase
     {
         $response = $this->getJson('books?limit=2&offset=1');
         $response->assertStatus(200);
-
-        $data = $response->json();
-        foreach ($data as $row) {
-            // kinds要素があり、空配列か
-            $this->assertEmpty($row['kinds']);
-        }
+        // kinds要素があり、空配列か
+        $response->assertJsonPath('0.kinds', fn($kinds) => count($kinds) === 0);
     }
 
     #[Test]
