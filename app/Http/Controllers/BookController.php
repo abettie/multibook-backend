@@ -118,7 +118,7 @@ class BookController extends BaseController
         $reqBook = [
             'name' => $reqAll['name']
         ];
-        $reqKinds = $reqAll['kinds'];
+        $reqKinds = $reqAll['kinds'] ?? [];
         $res = DB::transaction(function () use ($reqBook, $reqKinds) {
             $book = Book::create($reqBook);
             $book->kinds()->createMany($reqKinds);
@@ -260,6 +260,11 @@ class BookController extends BaseController
             // 削除対象の図鑑IDが使用中かチェック
             if ($book->items()->exists()) {
                 throw new DataException('削除対象の図鑑が使用中です');
+            }
+            // 削除対象の種類IDが使用中かチェック
+            $dbKindsIdList = $book->kinds()->pluck('id');
+            if (Item::whereIn('kind_id', $dbKindsIdList)->exists()) {
+                throw new DataException('削除対象の種類が使用中です');
             }
             $book->kinds()->delete();
             $book->delete();
