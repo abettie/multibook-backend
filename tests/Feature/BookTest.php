@@ -28,7 +28,7 @@ class BookTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('index正常系：パラメータ無し')]
+    #[TestDox('index正常系 - パラメータ無し')]
     public function indexWithoutParameters(): void
     {
         $response = $this->getJson('books');
@@ -42,7 +42,7 @@ class BookTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('index正常系：パラメータ有り')]
+    #[TestDox('index正常系 - パラメータ有り')]
     public function indexWithParameters(): void
     {
         $response = $this->getJson('books?limit=10&offset=4');
@@ -56,7 +56,7 @@ class BookTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('index正常系：kinds有りデータ')]
+    #[TestDox('index正常系 - kinds有りデータ')]
     public function indexWithKindsData(): void
     {
         $response = $this->getJson('books?limit=2&offset=11');
@@ -70,7 +70,7 @@ class BookTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('index正常系：kinds無しデータ')]
+    #[TestDox('index正常系 - kinds無しデータ')]
     public function indexWithoutKindsData(): void
     {
         $response = $this->getJson('books?limit=2&offset=1');
@@ -84,7 +84,7 @@ class BookTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('index異常系：不正パラメータ')]
+    #[TestDox('index異常系 - 不正パラメータ')]
     #[TestWith(['a', 11])]
     #[TestWith([5, 'a'])]
     #[TestWith(['a', 'a'])]
@@ -95,8 +95,8 @@ class BookTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('store正常系')]
-    public function store(): void
+    #[TestDox('store正常系 - kinds無し')]
+    public function storeWithoutKinds(): void
     {
         $response = $this->postJson('books', ['name' => '犬図鑑']);
         $response->assertStatus(200);
@@ -104,12 +104,71 @@ class BookTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('store異常系：不正パラメータ')]
-    public function storeWithInvalidParam(): void
+    #[TestDox('store正常系 - kinds有り')]
+    public function storeWithKinds(): void
     {
-        $response = $this->postJson('books', ['name' => fake()->realText(50)]);
+        $response = $this->postJson('books', ['name' => '犬図鑑', 'kinds' => [['name' => '大型犬'], ['name' => '中型犬']]]);
         $response->assertStatus(200);
+        $response->assertJsonFragment(['name' => '犬図鑑']);
+    }
+
+    #[Test]
+    #[TestDox('store正常系 - name桁数ギリギリ')]
+    public function storeWithLongName(): void
+    {
+        $response = $this->postJson('books', ['name' => fake()->realText(50), 'kinds' => [['name' => '大型犬'], ['name' => '中型犬']]]);
+        $response->assertStatus(200);
+    }
+
+    #[Test]
+    #[TestDox('store正常系 - kindsのname桁数ギリギリ')]
+    public function storeWithLongKindsName(): void
+    {
+        $response = $this->postJson('books', ['name' => '犬図鑑', 'kinds' => [
+                ['name' => '大型犬'],
+                ['name' => fake()->realText(100)]
+            ]
+        ]);
+        $response->assertStatus(200);
+    }
+
+    #[Test]
+    #[TestDox('store異常系 - name無し')]
+    public function storeWithoutName(): void
+    {
+        $response = $this->postJson('books', []);
+        $response->assertStatus(422);
+    }
+
+    #[Test]
+    #[TestDox('store異常系 - name桁数オーバー')]
+    public function storeWithOverName(): void
+    {
         $response = $this->postJson('books', ['name' => fake()->realText(51)]);
+        $response->assertStatus(422);
+    }
+
+    #[Test]
+    #[TestDox('store異常系 - kindsのname無し')]
+    public function storeWithoutKindsName(): void
+    {
+        $response = $this->postJson('books', ['name' => '犬図鑑', 'kinds' => [
+                ['name' => '大型犬'],
+                []
+            ]
+        ]);
+        $response->assertStatus(422);
+    }
+
+    #[Test]
+    #[TestDox('store異常系 - kindsのname桁数オーバー')]
+    public function storeWithOverKindsName(): void
+    {
+        $response = $this->postJson('books', ['name' => '犬図鑑', 'kinds' => [
+                ['name' => '大型犬'],
+                ['name' => fake()->realText(101)]
+            ]
+        ]);
         $response->assertStatus(422);
     }
 
@@ -126,7 +185,7 @@ class BookTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('show異常系：該当データ無し')]
+    #[TestDox('show異常系 - 該当データ無し')]
     #[TestWith([10000])]
     public function showWithNoDataParam($id): void
     {
@@ -135,7 +194,7 @@ class BookTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('show異常系：不正パラメータ')]
+    #[TestDox('show異常系 - 不正パラメータ')]
     #[TestWith(['a'])]
     #[TestWith(['.'])]
     #[TestWith(['-'])]
@@ -253,9 +312,7 @@ class BookTest extends TestCase
 
     #[Test]
     #[TestDox('destroy正常系')]
-    #[TestWith([1])]
-    #[TestWith([11])]
-    #[TestWith([30])]
+    #[TestWith([34])]
     public function destroy($id): void
     {
         $response = $this->deleteJson("books/{$id}");
@@ -272,5 +329,14 @@ class BookTest extends TestCase
     {
         $response = $this->deleteJson("books/{$id}");
         $response->assertStatus(404);
+    }
+
+    #[Test]
+    #[TestDox('destroy異常系 - bookと紐づくitemが存在')]
+    #[TestWith([11])]
+    public function destroyWithItem($id): void
+    {
+        $response = $this->deleteJson("books/$id}");
+        $response->assertStatus(400);
     }
 }
