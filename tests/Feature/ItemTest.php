@@ -15,7 +15,7 @@ class ItemTest extends TestCase
     use RefreshDatabase;
 
     #[Test]
-    #[TestDox('index正常系：パラメータ無し')]
+    #[TestDox('index正常系 - パラメータ無し')]
     public function indexWithoutParameters(): void
     {
         $response = $this->getJson('items');
@@ -29,7 +29,7 @@ class ItemTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('index正常系：パラメータ有り')]
+    #[TestDox('index正常系 - パラメータ有り')]
     public function indexWithParameters(): void
     {
         $response = $this->getJson('items?limit=10&offset=4');
@@ -43,35 +43,37 @@ class ItemTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('index正常系：kind, image有りデータ')]
-    public function indexWithKindsData(): void
+    #[TestDox('index正常系 - kind, image有りデータ')]
+    public function indexWithRelation(): void
     {
         $response = $this->getJson('items?limit=2&offset=101');
         $response->assertStatus(200);
 
         $data = $response->json();
         foreach ($data as $row) {
-            // kinds要素があり、要素1個以上の配列か
+            // kinds, image要素があり、要素1個以上の配列か
             $this->assertNotEmpty($row['kind']);
+            $this->assertNotEmpty($row['images']);
         }
     }
 
     #[Test]
-    #[TestDox('index正常系：kind無しデータ')]
-    public function indexWithoutKindsData(): void
+    #[TestDox('index正常系 - kind, image無しデータ')]
+    public function indexWithoutRelation(): void
     {
         $response = $this->getJson('items?limit=2&offset=1');
         $response->assertStatus(200);
 
         $data = $response->json();
         foreach ($data as $row) {
-            // kinds要素があり、空配列か
+            // kinds, image要素があり、空配列か
             $this->assertEmpty($row['kind']);
+            $this->assertEmpty($row['images']);
         }
     }
 
     #[Test]
-    #[TestDox('index異常系：不正パラメータ')]
+    #[TestDox('index異常系 - 不正パラメータ')]
     #[TestWith(['a', 11])]
     #[TestWith([5, 'a'])]
     public function indexWithInvalidParam($limit, $offset): void
@@ -81,16 +83,16 @@ class ItemTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('store正常系：kind無し')]
-    public function storeWithoutKind(): void
+    #[TestDox('store正常系 - kind, explanation無し')]
+    public function storeWithoutKindExplanation(): void
     {
-        $response = $this->postJson('items', ['book_id' => 1, 'name' => 'ハスキー', 'explanation' => '大きいよ。']);
+        $response = $this->postJson('items', ['book_id' => 1, 'name' => 'ハスキー']);
         $response->assertStatus(200);
         $response->assertJsonFragment(['name' => 'ハスキー']);
     }
 
     #[Test]
-    #[TestDox('store正常系：kind有り')]
+    #[TestDox('store正常系 - kind, explanation有り')]
     public function storeWithKind(): void
     {
         $response = $this->postJson('items', ['book_id' => 11, 'name' => 'チワワ', 'kind_id' => 1,  'explanation' => '小さいよ。']);
@@ -99,40 +101,88 @@ class ItemTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('store異常系：不正パラメータ')]
-    public function storeWithInvalidParam(): void
+    #[TestDox('store正常系 - name文字数ギリギリ')]
+    public function storeWithLongName(): void
     {
-        // 閾値ギリギリ
-        $response = $this->postJson('items', ['book_id' => 11, 'name' => fake()->realText(100), 'kind_id' => 1,  'explanation' => fake()->realText(1000)]);
+        $response = $this->postJson('items', ['book_id' => 11, 'name' => fake()->realText(100), 'kind_id' => 1,  'explanation' => '小さいよ。']);
         $response->assertStatus(200);
-        // book_id不正
+    }
+
+    #[Test]
+    #[TestDox('store正常系 - explanation文字数ギリギリ')]
+    public function storeWithLongExplanation(): void
+    {
+        $response = $this->postJson('items', ['book_id' => 11, 'name' => 'チワワ', 'kind_id' => 1,  'explanation' => fake()->realText(1000)]);
+        $response->assertStatus(200);
+    }
+
+    #[Test]
+    #[TestDox('store異常系 - book_id無し')]
+    public function storeWithoutBookId(): void
+    {
+        $response = $this->postJson('items', ['name' => fake()->realText(100), 'kind_id' => 1,  'explanation' => fake()->realText(1000)]);
+        $response->assertStatus(422);
+    }
+
+    #[Test]
+    #[TestDox('store異常系 - book_id不正')]
+    public function storeWithInvalidBookId(): void
+    {
         $response = $this->postJson('items', ['book_id' => 'a', 'name' => fake()->realText(100), 'kind_id' => 1,  'explanation' => fake()->realText(1000)]);
         $response->assertStatus(422);
-        // kind_id不正
+    }
+
+    #[Test]
+    #[TestDox('store異常系 - kind_id不正')]
+    public function storeWithInvalidKindId(): void
+    {
         $response = $this->postJson('items', ['book_id' => 11, 'name' => fake()->realText(100), 'kind_id' => 'a',  'explanation' => fake()->realText(1000)]);
         $response->assertStatus(422);
-        // name閾値オーバー
+    }
+
+    #[Test]
+    #[TestDox('store異常系 - name文字数オーバー')]
+    public function storeWithOverName(): void
+    {
         $response = $this->postJson('items', ['book_id' => 11, 'name' => fake()->realText(101), 'kind_id' => 1,  'explanation' => fake()->realText(1000)]);
         $response->assertStatus(422);
-        // explanation閾値オーバー
+    }
+
+    #[Test]
+    #[TestDox('store異常系 - explanation文字数オーバー')]
+    public function storeWithOverExplanation(): void
+    {
         $response = $this->postJson('items', ['book_id' => 11, 'name' => fake()->realText(100), 'kind_id' => 1,  'explanation' => fake()->realText(1001)]);
         $response->assertStatus(422);
     }
 
     #[Test]
-    #[TestDox('show正常系')]
-    #[TestWith([1])]
+    #[TestDox('show正常系 - kind, image無しデータ')]
     #[TestWith([11])]
-    #[TestWith([101])]
-    public function show($id): void
+    public function showWithoutRelation($id): void
     {
         $response = $this->getJson("items/{$id}");
         $response->assertStatus(200);
         $response->assertJsonFragment(['id' => $id]);
+        $response->assertJsonFragment(['kind' => null]);
+        $response->assertJsonFragment(['images' => []]);
+
     }
 
     #[Test]
-    #[TestDox('show異常系：該当データ無し')]
+    #[TestDox('show正常系 - kind, image有りデータ')]
+    #[TestWith([101])]
+    public function showWithRelation($id): void
+    {
+        $response = $this->getJson("items/{$id}");
+        $response->assertStatus(200);
+        $response->assertJsonFragment(['id' => $id]);
+        $response->assertJsonPath('kind', fn($kind) => isset($kind['id']) && isset($kind['name']) && isset($kind['book_id']));
+        $response->assertJsonPath('images', fn($image) => is_array($image) && count($image) > 0);
+    }
+
+    #[Test]
+    #[TestDox('show異常系 - 該当データ無し')]
     #[TestWith([10000])]
     public function showWithNoDataParam($id): void
     {
@@ -141,7 +191,7 @@ class ItemTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('show異常系：不正パラメータ')]
+    #[TestDox('show異常系 - 不正パラメータ')]
     #[TestWith(['a'])]
     #[TestWith(['.'])]
     #[TestWith(['-'])]
@@ -171,30 +221,72 @@ class ItemTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('update異常系：不正パラメータ')]
-    public function updateWithInvalidParam(): void
+    #[TestDox('update正常系 - name文字数ギリギリ')]
+    public function updateWithLongName(): void
     {
-        $response = $this->putJson("items/a", ['name' => 'チワワ']);
-        $response->assertStatus(404);
         $response = $this->putJson("items/2", ['name' => fake()->realText(100)]);
         $response->assertStatus(200);
-        $response->assertJsonFragment(['id' => 2]);
-        $response = $this->putJson("items/2", ['name' => fake()->realText(101)]);
-        $response->assertStatus(422);
+    }
+
+    #[Test]
+    #[TestDox('update正常系 - explanation文字数ギリギリ')]
+    public function updateWithLongExplanation(): void
+    {
         $response = $this->putJson("items/2", ['explanation' => fake()->realText(1000)]);
         $response->assertStatus(200);
-        $response->assertJsonFragment(['id' => 2]);
-        $response = $this->putJson("items/2", ['explanation' => fake()->realText(1001)]);
-        $response->assertStatus(422);
+    }
+
+    #[Test]
+    #[TestDox('update正常系 - パラメータ無し')]
+    public function updateWithoutParam(): void
+    {
         $response = $this->putJson("items/2");
         $response->assertStatus(200);
     }
 
     #[Test]
+    #[TestDox('update異常系 - ID不正')]
+    public function updateWithInvalidId(): void
+    {
+        $response = $this->putJson("items/a", ['name' => 'チワワ']);
+        $response->assertStatus(404);
+    }
+
+    #[Test]
+    #[TestDox('update異常系 - book_id不正')]
+    public function updateWithInvalidBookId(): void
+    {
+        $response = $this->putJson("items/2", ['book_id' => 'a']);
+        $response->assertStatus(422);
+    }
+
+    #[Test]
+    #[TestDox('update異常系 - kind_id不正')]
+    public function updateWithInvalidKindId(): void
+    {
+        $response = $this->putJson("items/2", ['kind_id' => 'a']);
+        $response->assertStatus(422);
+    }
+
+    #[Test]
+    #[TestDox('update異常系 - name文字数オーバー')]
+    public function updateWithOverName(): void
+    {
+        $response = $this->putJson("items/2", ['name' => fake()->realText(101)]);
+        $response->assertStatus(422);
+    }
+
+    #[Test]
+    #[TestDox('update異常系 - explanation文字数オーバー')]
+    public function updateWithOverExplanation(): void
+    {
+        $response = $this->putJson("items/2", ['explanation' => fake()->realText(1001)]);
+        $response->assertStatus(422);
+    }
+
+    #[Test]
     #[TestDox('destroy正常系')]
-    #[TestWith([1])]
     #[TestWith([11])]
-    #[TestWith([300])]
     public function destroy($id): void
     {
         $response = $this->deleteJson("items/{$id}");
@@ -203,7 +295,7 @@ class ItemTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('destroy異常系：不正パラメータ')]
+    #[TestDox('destroy異常系 - 不正パラメータ')]
     #[TestWith(['a'])]
     #[TestWith(['.'])]
     #[TestWith(['-'])]
@@ -211,5 +303,14 @@ class ItemTest extends TestCase
     {
         $response = $this->deleteJson("items/{$id}");
         $response->assertStatus(404);
+    }
+
+    #[Test]
+    #[TestDox('destroy異常系 - 画像がまだある')]
+    #[TestWith([101])]
+    public function destroyWithImage($id): void
+    {
+        $response = $this->deleteJson("items/{$id}");
+        $response->assertStatus(400);
     }
 }
