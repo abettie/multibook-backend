@@ -7,6 +7,7 @@ use App\Http\Requests\ImageIndexRequest;
 use App\Http\Requests\ImageStoreRequest;
 use App\Http\Requests\ImageUpdateRequest;
 use App\Models\Image;
+use App\Models\Item;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
@@ -90,6 +91,10 @@ class ImageController extends BaseController
 
         // DB登録内容作成
         $reqAll = $request->validated();
+        // 該当のitem_idのデータが存在するか
+        if (!Item::where('id', $reqAll['item_id'])->exists()) {
+            throw new DataException('item_idが存在しません');
+        }
         $dbParams = [
             'item_id' => $reqAll['item_id'],
             'file_name' => $fileName
@@ -213,8 +218,12 @@ class ImageController extends BaseController
     )]
     public function destroy(Image $image)
     {
-        // 画像ファイル削除
-        Storage::disk('s3')->delete('images/' . $image->file_name);
+        if(Storage::disk('s3')->exists('images/' . $image->file_name)) {
+            // 画像ファイル削除
+            Storage::disk('s3')->delete('images/' . $image->file_name);
+        } else {
+            logger()->warning('画像ファイルが存在しません', ['file_name' => $image->file_name]);
+        }
 
         // DB削除
         $image->delete();
