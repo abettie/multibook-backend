@@ -20,5 +20,5 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(fn (DataException $e) => response()->json(['message' => $e->getMessage()], 400));
-        $exceptions->report(fn (DataException $e) => Log::error($e->getMessage()))->stop();
+        $exceptions->report(fn (DataException $e) => Log::warning($e->getMessage()))->stop();
     })->create();
