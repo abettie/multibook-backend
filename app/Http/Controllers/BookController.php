@@ -6,10 +6,13 @@ use App\Exceptions\DataException;
 use App\Http\Requests\BookIndexRequest;
 use App\Http\Requests\BookStoreRequest;
 use App\Http\Requests\BookUpdateRequest;
+use App\Http\Requests\BookUpsertThumbnailRequest;
 use App\Models\Book;
 use App\Models\Item;
 use App\Models\Kind;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
 
 class BookController extends BaseController
@@ -271,5 +274,68 @@ class BookController extends BaseController
             return $book;
         });
         return $this->customDestroyResponse($res);
+    }
+
+    /**
+     * サムネイル画像登録API
+     */
+    #[OA\Post(
+        path: '/books/{id}/thumbnail',
+        operationId: 'bookUpdateThumbnail',
+        tags: ['books'],
+        summary: '図鑑サムネイル登録API',
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: '図鑑ID', schema: new OA\Schema(type: 'integer'))
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\MediaType(
+                mediaType: 'multipart/form-data',
+                schema: new OA\Schema(
+                    type: 'object',
+                    properties: [
+                        new OA\Property(property: 'thumbnail', type: 'string', format: 'binary', description: 'サムネイル画像ファイル')
+                    ]
+                )
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: '200',
+                description: 'Success',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'file_name', type: 'string', description: 'サムネイル画像ファイル名', example: 'd2f3c4e5-6a7b-8c9d-0e1f-2g3h4i5j6k7l.jpg')
+                    ]
+                )
+            )
+        ]
+    )]
+    public function updateThumbnail(BookUpsertThumbnailRequest $request, Book $book)
+    {
+        // 画像ファイルのバリデーション
+        $request->validated();
+
+        $reqAll = $request->validated();
+        $thumbnail = $reqAll['thumbnail'];
+
+        // 画像ファイル名作成
+        $extension = $thumbnail->getClientOriginalExtension();
+        $fileName = Str::uuid() . '.' . $extension;
+
+        // 現在のサムネールファイル名取得
+        $oldThumbnail = $book->thumbnail;
+
+        // DB更新
+        $book->thumbnail = $fileName;
+        $book->save();
+        // 画像ファイルアップロード
+        Storage::disk('s3')->put('thumbnails/' . $fileName, file_get_contents($thumbnail));
+        // 古いサムネイルファイル削除
+        if ($oldThumbnail) {
+            Storage::disk('s3')->delete('thumbnails/' . $oldThumbnail);
+        }
+
+        return response()->json(['file_name' => $fileName]);
     }
 }

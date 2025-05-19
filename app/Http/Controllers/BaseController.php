@@ -12,7 +12,7 @@ use OpenApi\Attributes as OA;
     description: 'マルチ図鑑APIの仕様書です。'
 )]
 #[OA\Server(
-    url: 'http://localhost:8000',
+    url: 'http://localhost:8000/api',
     description: '開発環境'
 )]
 class BaseController extends Controller

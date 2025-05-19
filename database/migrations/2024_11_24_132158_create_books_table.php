@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('books', function (Blueprint $table) {
             $table->id();
             $table->string('name', length: 50)->comment('名前');
+            $table->string('thumbnail', length: 100)->nullable()->comment('サムネイルファイル名');
             $table->timestamps();
             $table->comment('図鑑');
         });

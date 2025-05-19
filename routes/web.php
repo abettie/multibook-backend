@@ -10,6 +10,8 @@ Route::get('/', function () {
 });
 
 Route::apiResource('books', BookController::class);
+Route::post('/books/{book}/thumbnail', [BookController::class, 'updateThumbnail'])
+    ->name('books.updateThumbnail');
 Route::apiResource('items', ItemController::class);
 
 Route::get('/images', [ImageController::class, 'index']);
