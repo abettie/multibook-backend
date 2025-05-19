@@ -22,7 +22,8 @@ class BookController extends BaseController
         type: 'object',
         properties: [
             new OA\Property(property: 'id', type: 'integer', example: 1),
-            new OA\Property(property: 'name', type: 'string', example: '犬図鑑')
+            new OA\Property(property: 'name', type: 'string', example: '犬図鑑'),
+            new OA\Property(property: 'thumbnail', type: 'string', example: 'https://example.com/thumbnails/d2f3c4e5-6a7b-8c9d-0e1f-2g3h4i5j6k7l.jpg'),
         ]
     )]
     #[OA\Schema(
@@ -40,6 +41,7 @@ class BookController extends BaseController
         properties: [
             new OA\Property(property: 'id', type: 'integer', example: 1),
             new OA\Property(property: 'name', type: 'string', example: '犬図鑑'),
+            new OA\Property(property: 'thumbnail', type: 'string', example: 'https://example.com/thumbnails/d2f3c4e5-6a7b-8c9d-0e1f-2g3h4i5j6k7l.jpg'),
             new OA\Property(property: 'kinds', type: 'array', items: new OA\Items(ref: '#/components/schemas/Kind'))
         ]
     )]
@@ -78,7 +80,16 @@ class BookController extends BaseController
         $result = Book::offset((int)$offset)
             ->limit((int)$limit)
             ->with('kinds')
-            ->get();
+            ->get()
+            ->map(function ($book) {
+                $s3Endpoint = env('S3_ENDPOINT');
+                if ($book->thumbnail) {
+                    $book->thumbnail = $s3Endpoint . '/thumbnails/' . $book->thumbnail;
+                } else {
+                    $book->thumbnail = $s3Endpoint . '/thumbnails/no-image.png';
+                }
+                return $book;
+            });
 
         return $this->customIndexResponse($result);
     }
@@ -154,6 +165,12 @@ class BookController extends BaseController
     public function show(Book $book)
     {
         $book->load('kinds');
+        $s3Endpoint = env('S3_ENDPOINT');
+        if ($book->thumbnail) {
+            $book->thumbnail = $s3Endpoint . '/thumbnails/' . $book->thumbnail;
+        } else {
+            $book->thumbnail = $s3Endpoint . '/thumbnails/no-image.png';
+        }
         return $this->customShowResponse($book);
     }
 
