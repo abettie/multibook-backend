@@ -71,7 +71,8 @@ class ImageTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJsonPath('item_id', 1);
-        $this->assertTrue(Storage::disk('s3')->exists('images/' . $response->json('file_name')));
+        $fileName = basename($response->json('file_name'));
+        $this->assertTrue(Storage::disk('s3')->exists('images/' . $fileName));
     }
 
     #[Test]
@@ -88,7 +89,8 @@ class ImageTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJsonPath('item_id', 1);
-        $this->assertTrue(Storage::disk('s3')->exists('images/' . $response->json('file_name')));
+        $fileName = basename($response->json('file_name'));
+        $this->assertTrue(Storage::disk('s3')->exists('images/' . $fileName));
     }
 
     #[Test]
@@ -230,7 +232,8 @@ class ImageTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJsonPath('item_id', $this->image->item_id);
-        $this->assertTrue(Storage::disk('s3')->exists('images/' . $response->json('file_name')));
+        $fileName = basename($response->json('file_name'));
+        $this->assertTrue(Storage::disk('s3')->exists('images/' . $fileName));
     }
 
     #[Test]
@@ -247,7 +250,8 @@ class ImageTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJsonPath('item_id', $this->image->item_id);
-        $this->assertTrue(Storage::disk('s3')->exists('images/' . $response->json('file_name')));
+        $fileName = basename($response->json('file_name'));
+        $this->assertTrue(Storage::disk('s3')->exists('images/' . $fileName));
     }
 
     #[Test]
