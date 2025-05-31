@@ -31,4 +31,9 @@ class Book extends BaseModel
     {
         return $this->hasMany(Kind::class);
     }
+
+    public function getThumbnailAttribute($value)
+    {
+        return config('app.img_endpoint') . '/thumbnails/' . ($value ?: 'no-image.png');
+    }
 }

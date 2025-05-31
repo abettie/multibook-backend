@@ -39,7 +39,12 @@ class ItemController extends BaseController
         properties: [
             new OA\Property(property: 'id', type: 'integer', example: 1),
             new OA\Property(property: 'item_id', type: 'integer', example: 1),
-            new OA\Property(property: 'file_name', type: 'string', example: 'e0f3d662-8d62-32c2-beb4-b8d7d91b1862.png'),
+            new OA\Property(
+                property: 'file_name',
+                type: 'string',
+                description: '画像ファイルのURL（IMG_ENDPOINT + /images/ + ファイル名）',
+                example: 'https://example.com/images/e0f3d662-8d62-32c2-beb4-b8d7d91b1862.png'
+            ),
         ]
     )]
     #[OA\Schema(
