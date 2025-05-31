@@ -80,16 +80,7 @@ class BookController extends BaseController
         $result = Book::offset((int)$offset)
             ->limit((int)$limit)
             ->with('kinds')
-            ->get()
-            ->map(function ($book) {
-                $s3Endpoint = env('S3_ENDPOINT');
-                if ($book->thumbnail) {
-                    $book->thumbnail = $s3Endpoint . '/thumbnails/' . $book->thumbnail;
-                } else {
-                    $book->thumbnail = $s3Endpoint . '/thumbnails/no-image.png';
-                }
-                return $book;
-            });
+            ->get();
 
         return $this->customIndexResponse($result);
     }
@@ -165,12 +156,6 @@ class BookController extends BaseController
     public function show(Book $book)
     {
         $book->load('kinds');
-        $s3Endpoint = env('S3_ENDPOINT');
-        if ($book->thumbnail) {
-            $book->thumbnail = $s3Endpoint . '/thumbnails/' . $book->thumbnail;
-        } else {
-            $book->thumbnail = $s3Endpoint . '/thumbnails/no-image.png';
-        }
         return $this->customShowResponse($book);
     }
 

@@ -21,4 +21,9 @@ class Image extends BaseModel
     {
         return $this->belongsTo(Item::class);
     }
+
+    public function getFileNameAttribute($value)
+    {
+        return config('app.img_endpoint') . '/images/' . ($value ?: 'no-image.png');
+    }
 }
