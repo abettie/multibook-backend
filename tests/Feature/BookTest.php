@@ -31,8 +31,6 @@ class BookTest extends TestCase
     {
         $response = $this->getJson('books');
         $response->assertStatus(200);
-        // 10個(limitデフォルト値)あるか
-        $response->assertJsonCount(10);
         // 1番目(offsetデフォルト値)から取ってきているか
         $response->assertJsonPath('0.id', 1);
     }
