@@ -75,11 +75,13 @@ class BookController extends BaseController
     public function index(BookIndexRequest $request)
     {
         // GETパラメータのlimitとoffsetを取得
-        $limit = $request->query('limit', 10);
+        $limit = $request->query('limit', null);
         $offset = $request->query('offset', 0);
 
-        $result = Book::offset((int)$offset)
-            ->limit((int)$limit)
+        $result = Book::query()
+            ->when($limit, function ($query) use ($offset, $limit) {
+                return $query->offset((int)$offset)->limit((int)$limit);
+            })
             ->with('kinds')
             ->get();
 
