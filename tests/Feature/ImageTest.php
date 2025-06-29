@@ -80,7 +80,7 @@ class ImageTest extends TestCase
     public function storeWithLargeImage(): void
     {
         Storage::fake('s3');
-        $file = UploadedFile::fake()->create('test.jpg', 2048);
+        $file = UploadedFile::fake()->create('test.jpg', 8000);
 
         $response = $this->postJson('images', [
             'item_id' => 1,
@@ -98,7 +98,7 @@ class ImageTest extends TestCase
     public function storeWithOverImage(): void
     {
         Storage::fake('s3');
-        $file = UploadedFile::fake()->create('test.jpg', 2049);
+        $file = UploadedFile::fake()->create('test.jpg', 8001);
 
         $response = $this->postJson('images', [
             'item_id' => 1,
@@ -241,7 +241,7 @@ class ImageTest extends TestCase
     public function updateWithLargeImage(): void
     {
         Storage::fake('s3');
-        $file = UploadedFile::fake()->create('test.jpg', 2048);
+        $file = UploadedFile::fake()->create('test.jpg', 8000);
 
         $response = $this->postJson('updateImages/'. $this->image->id, [
             'item_id' => $this->image->item_id,
@@ -259,7 +259,7 @@ class ImageTest extends TestCase
     public function updateWithOverImage(): void
     {
         Storage::fake('s3');
-        $file = UploadedFile::fake()->create('test.jpg', 2049);
+        $file = UploadedFile::fake()->create('test.jpg', 8001);
 
         $response = $this->postJson('updateImages/'. $this->image->id, [
             'item_id' => $this->image->item_id,
