@@ -22,7 +22,7 @@ class BookUpsertThumbnailRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'thumbnail' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'thumbnail' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:8000',
         ];
     }
 }
