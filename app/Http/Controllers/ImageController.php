@@ -225,11 +225,18 @@ class ImageController extends BaseController
     )]
     public function destroy(Image $image)
     {
-        if(Storage::disk('s3')->exists('images/' . $image->file_name)) {
+        // file_nameがURLの場合はファイル名のみ抽出（スラッシュなし）
+        $fileName = $image->file_name;
+        if (filter_var($fileName, FILTER_VALIDATE_URL)) {
+            $parsed = parse_url($fileName, PHP_URL_PATH);
+            $fileName = basename($parsed);
+        }
+
+        if(Storage::disk('s3')->exists('images/' . $fileName)) {
             // 画像ファイル削除
-            Storage::disk('s3')->delete('images/' . $image->file_name);
+            Storage::disk('s3')->delete('images/' . $fileName);
         } else {
-            logger()->warning('画像ファイルが存在しません', ['file_name' => $image->file_name]);
+            logger()->warning('画像ファイルが存在しません', ['file_name' => $fileName]);
         }
 
         // DB削除
