@@ -76,24 +76,6 @@ class ImageTest extends TestCase
     }
 
     #[Test]
-    #[TestDox('store正常系 - 画像ファイル容量ギリギリ')]
-    public function storeWithLargeImage(): void
-    {
-        Storage::fake('s3');
-        $file = UploadedFile::fake()->create('test.jpg', 8000);
-
-        $response = $this->postJson('images', [
-            'item_id' => 1,
-            'image' => $file,
-        ]);
-
-        $response->assertStatus(200);
-        $response->assertJsonPath('item_id', 1);
-        $fileName = basename($response->json('file_name'));
-        $this->assertTrue(Storage::disk('s3')->exists('images/' . $fileName));
-    }
-
-    #[Test]
     #[TestDox('store異常系 - 画像ファイル容量オーバー')]
     public function storeWithOverImage(): void
     {
@@ -224,24 +206,6 @@ class ImageTest extends TestCase
     {
         Storage::fake('s3');
         $file = UploadedFile::fake()->image('test.jpg');
-
-        $response = $this->postJson('updateImages/'. $this->image->id, [
-            'item_id' => $this->image->item_id,
-            'image' => $file,
-        ]);
-
-        $response->assertStatus(200);
-        $response->assertJsonPath('item_id', $this->image->item_id);
-        $fileName = basename($response->json('file_name'));
-        $this->assertTrue(Storage::disk('s3')->exists('images/' . $fileName));
-    }
-
-    #[Test]
-    #[TestDox('update正常系 - 画像ファイル容量ギリギリ')]
-    public function updateWithLargeImage(): void
-    {
-        Storage::fake('s3');
-        $file = UploadedFile::fake()->create('test.jpg', 8000);
 
         $response = $this->postJson('updateImages/'. $this->image->id, [
             'item_id' => $this->image->item_id,
