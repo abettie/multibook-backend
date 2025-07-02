@@ -85,20 +85,23 @@ class ImageController extends BaseController
     )]
     public function store(ImageStoreRequest $request)
     {
-        // 画像ファイル名作成
-        $extension = $request->file('image')->getClientOriginalExtension();
-        $fileName = Str::uuid() . '.' . $extension;
-
         $reqAll = $request->validated();
         // 該当のitem_idのデータが存在するか
         if (!Item::where('id', $reqAll['item_id'])->exists()) {
             throw new DataException('item_idが存在しません');
         }
-        $dbParams = [
+
+        $imageFile = $request->file('image');
+
+        // 画像ファイル名作成
+        $extension = $this->getImageExtension($imageFile);
+        $fileName = Str::uuid() . '.' . $extension;
+
+        // DB更新
+        $result = Image::create([
             'item_id' => $reqAll['item_id'],
             'file_name' => $fileName
-        ];
-        $result = Image::create($dbParams);
+        ]);
 
         try {
             // 画像をリサイズ・圧縮してS3にアップロード
@@ -181,20 +184,37 @@ class ImageController extends BaseController
             throw new DataException('item_idは変更できません');
         }
 
+        $imageFile = $request->file('image');
+
         // 画像ファイル名作成
-        $extension = $request->file('image')->getClientOriginalExtension();
+        $extension = $this->getImageExtension($imageFile);
         $fileName = Str::uuid() . '.' . $extension;
         $oldFileName = $image->file_name;
 
-        // DB更新
-        $image->update(['file_name' => $fileName]);
 
-        // 画像ファイル更新（削除→アップロード）
-        Storage::disk('s3')->delete('images/' . $oldFileName);
+        try {
+            // 旧画像ファイル削除
+            Storage::disk('s3')->delete('images/' . $oldFileName);
+        } catch (\Exception $e) {
+            // 画像ファイルの削除に失敗した場合はログに記録し、中断
+            logger()->error('画像ファイルの削除に失敗', [
+                'file_name' => $oldFileName,
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
 
-        // 画像をリサイズ・圧縮してS3にアップロード
-        $imageData = $this->processAndCompressImage($request->file('image'));
-        Storage::disk('s3')->put('images/' . $fileName, $imageData);
+        try {
+            // 画像をリサイズ・圧縮してS3にアップロード
+            $imageData = $this->processAndCompressImage($imageFile);
+            Storage::disk('s3')->put('images/' . $fileName, $imageData);
+            // DB更新
+            $image->update(['file_name' => $fileName]);
+        } catch (\Exception $e) {
+            // エラーが発生した場合、DBからレコードを削除。
+            $image->delete();
+            throw $e;
+        }
 
         return $this->customUpdateResponse($image);
     }
