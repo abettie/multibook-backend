@@ -334,8 +334,11 @@ class BookController extends BaseController
         // DB更新
         $book->thumbnail = $fileName;
         $book->save();
-        // 画像ファイルアップロード
-        Storage::disk('s3')->put('thumbnails/' . $fileName, file_get_contents($thumbnail));
+
+        // 画像ファイルアップロード（圧縮処理を追加）
+        $compressedImage = $this->processAndCompressImage($thumbnail);
+        Storage::disk('s3')->put('thumbnails/' . $fileName, $compressedImage);
+
         // 古いサムネイルファイル削除
         if ($oldThumbnail) {
             Storage::disk('s3')->delete('thumbnails/' . $oldThumbnail);
