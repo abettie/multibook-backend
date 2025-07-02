@@ -100,4 +100,22 @@ class BaseController extends Controller
 
         return $data;
     }
+
+    /**
+     * 画像のmimeタイプから拡張子を取得
+     * @param \Illuminate\Http\UploadedFile $uploadedFile
+     * @return string 拡張子
+     */
+    protected function getImageExtension($uploadedFile)
+    {
+        $mimeType = $uploadedFile->getClientMimeType();
+        $extension = match ($mimeType) {
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp',
+            'image/gif' => 'gif',
+            default => 'jpg', // デフォルトはjpg
+        };
+        return $extension;
+    }
 }

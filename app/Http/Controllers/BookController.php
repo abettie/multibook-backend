@@ -321,11 +321,10 @@ class BookController extends BaseController
         // 画像ファイルのバリデーション
         $request->validated();
 
-        $reqAll = $request->validated();
-        $thumbnail = $reqAll['thumbnail'];
+        $thumbnail = $request->file('thumbnail');
 
         // 画像ファイル名作成
-        $extension = $thumbnail->getClientOriginalExtension();
+        $extension = $this->getImageExtension($thumbnail);
         $fileName = Str::uuid() . '.' . $extension;
 
         // 現在のサムネールファイル名取得
