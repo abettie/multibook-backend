@@ -11,9 +11,6 @@ use App\Models\Item;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
-use Intervention\Image\Encoders\AutoEncoder;
 
 class ImageController extends BaseController
 {
@@ -243,54 +240,5 @@ class ImageController extends BaseController
         $image->delete();
 
         return $this->customDestroyResponse($image);
-    }
-
-    /**
-     * 画像をリサイズ・圧縮し、1MB以内に収める
-     * @param \Illuminate\Http\UploadedFile $uploadedFile
-     * @return string バイナリデータ
-     */
-    protected function processAndCompressImage($uploadedFile)
-    {
-        $maxSize = 1024 * 1024; // 1MB
-        $maxWidth = 1000;
-        $maxHeight = 1000;
-
-        // Intervention Imageで画像を読み込み
-        $manager = new ImageManager(new Driver());
-        $image = $manager->read($uploadedFile->getPathname());
-
-        // 1000x1000px以内にリサイズ（縦横比維持）
-        if ($image->width() > $maxWidth || $image->height() > $maxHeight) {
-            $image = $image->scale($maxWidth, $maxHeight);
-        }
-
-        // 画像を一時的に圧縮してバッファに保存
-        $quality = 90;
-        $format = strtolower($uploadedFile->getClientOriginalExtension());
-        if (!in_array($format, ['jpg', 'jpeg', 'png', 'webp'])) {
-            $format = 'jpg';
-        }
-
-        $data = (string) $image->encode(new AutoEncoder(quality: $quality));
-
-        // 1MBを超えている場合は品質を下げて再圧縮
-        while (strlen($data) > $maxSize && $quality > 10) {
-            $quality -= 10;
-            $data = (string) $image->encode(new AutoEncoder(quality: $quality));
-        }
-
-        // それでも1MBを超えていたら、さらに5%ずつ下げる
-        while (strlen($data) > $maxSize && $quality > 5) {
-            $quality -= 5;
-            $data = (string) $image->encode(new AutoEncoder(quality: $quality));
-        }
-
-        // 最終的に1MBを超えていたら例外
-        if (strlen($data) > $maxSize) {
-            throw new DataException('画像サイズを1MB以下にできませんでした');
-        }
-
-        return $data;
     }
 }
