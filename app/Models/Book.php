@@ -10,7 +10,7 @@ class Book extends BaseModel
     /** @use HasFactory<\Database\Factories\BookFactory> */
     use HasFactory;
 
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'thumbnail', 'user_id'];
 
     /**
      * Get all of the items for the Book
@@ -35,5 +35,10 @@ class Book extends BaseModel
     public function getThumbnailAttribute($value)
     {
         return config('app.img_endpoint') . '/thumbnails/' . ($value ?: 'no-image.png');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }
