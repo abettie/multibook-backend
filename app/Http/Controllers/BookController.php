@@ -10,6 +10,7 @@ use App\Http\Requests\BookUpsertThumbnailRequest;
 use App\Models\Book;
 use App\Models\Item;
 use App\Models\Kind;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -79,6 +80,7 @@ class BookController extends BaseController
         $offset = $request->query('offset', 0);
 
         $result = Book::query()
+            ->where('user_id', Auth::id())
             ->when($limit, function ($query) use ($offset, $limit) {
                 return $query->offset((int)$offset)->limit((int)$limit);
             })
@@ -124,7 +126,8 @@ class BookController extends BaseController
     {
         $reqAll = $request->validated();
         $reqBook = [
-            'name' => $reqAll['name']
+            'name' => $reqAll['name'],
+            'user_id' => Auth::id(),
         ];
         $reqKinds = $reqAll['kinds'] ?? [];
         $res = DB::transaction(function () use ($reqBook, $reqKinds) {
@@ -158,6 +161,8 @@ class BookController extends BaseController
     )]
     public function show(Book $book)
     {
+        $this->assertBookBelongsToUser($book);
+
         $book->load(['kinds', 'items.images', 'items.kind']);
         return $this->customShowResponse($book);
     }
@@ -200,6 +205,7 @@ class BookController extends BaseController
     )]
     public function update(BookUpdateRequest $request, Book $book)
     {
+        $this->assertBookBelongsToUser($book);
         $reqAll = $request->validated();
         $reqBook = [
             'name' => $reqAll['name']
@@ -264,6 +270,8 @@ class BookController extends BaseController
     )]
     public function destroy(Book $book)
     {
+        $this->assertBookBelongsToUser($book);
+
         $res = DB::transaction(function () use ($book) {
             // 削除対象の図鑑IDが使用中かチェック
             if ($book->items()->exists()) {
@@ -318,6 +326,8 @@ class BookController extends BaseController
     )]
     public function updateThumbnail(BookUpsertThumbnailRequest $request, Book $book)
     {
+        $this->assertBookBelongsToUser($book);
+
         // 画像ファイルのバリデーション
         $request->validated();
 
@@ -344,5 +354,15 @@ class BookController extends BaseController
         }
 
         return response()->json(['file_name' => $fileName]);
+    }
+
+    /**
+     * Bookのuser_idがログインユーザIDかを確認し、違う場合は403エラー
+     */
+    protected function assertBookBelongsToUser(Book $book)
+    {
+        if ($book->user_id !== Auth::id()) {
+            abort(403, '権限がありません');
+        }
     }
 }
