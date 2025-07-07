@@ -43,6 +43,6 @@ class GoogleController extends Controller
 
         Auth::login($user);
 
-        return redirect('/');
+        return redirect()->to(config('app.url', 'http://localhost'));
     }
 }
