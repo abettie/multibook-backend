@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ImageController;
+use App\Http\Controllers\DebugController;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Auth\LoginController;
 
@@ -27,3 +28,6 @@ Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle']);
 Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
 Route::get('/auth/logincheck', [LoginController::class, 'check']);
+
+// 認証・CSRFチェックなしで /debug ルートを定義
+Route::match(['get', 'post'], '/debug', [DebugController::class, 'debug'])->withoutMiddleware(['auth', 'web', 'csrf']);
