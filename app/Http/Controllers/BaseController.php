@@ -57,7 +57,7 @@ class BaseController extends Controller
      */
     protected function storageDisk(): string
     {
-        return app()->environment('local') ? 'local_img' : 's3';
+        return app()->environment('local') ? 'local_img' : 's3_img';
     }
 
     /**

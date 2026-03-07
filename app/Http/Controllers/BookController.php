@@ -87,7 +87,7 @@ class BookController extends BaseController
             ->with('kinds')
             ->get();
 
-        return $this->customIndexResponse($result);
+        return response()->json($result->map(fn($book) => $this->formatBook($book)), 200);
     }
 
     /**
@@ -135,7 +135,7 @@ class BookController extends BaseController
             $book->kinds()->createMany($reqKinds);
             return $book;
         });
-        return $this->customStoreResponse($res);
+        return response()->json($this->formatBook($res), 200);
     }
 
     /**
@@ -164,7 +164,7 @@ class BookController extends BaseController
         $this->assertBookBelongsToUser($book);
 
         $book->load(['kinds', 'items.images', 'items.kind']);
-        return $this->customShowResponse($book);
+        return response()->json($this->formatBook($book), 200);
     }
 
     /**
@@ -244,7 +244,7 @@ class BookController extends BaseController
 
             return $book;
         });
-        return $this->customUpdateResponse($res);
+        return response()->json($this->formatBook($res), 200);
     }
 
     /**
@@ -286,7 +286,7 @@ class BookController extends BaseController
             $book->delete();
             return $book;
         });
-        return $this->customDestroyResponse($res);
+        return response()->json($this->formatBook($res), 200);
     }
 
     /**
@@ -337,8 +337,8 @@ class BookController extends BaseController
         $extension = $this->getImageExtension($thumbnail);
         $fileName = Str::uuid() . '.' . $extension;
 
-        // 現在のサムネールファイル名取得（生の値）
-        $oldThumbnail = $book->getRawOriginal('thumbnail');
+        // 現在のサムネールファイル名取得
+        $oldThumbnail = $book->thumbnail;
 
         // DB更新
         $book->thumbnail = $fileName;
@@ -354,6 +354,28 @@ class BookController extends BaseController
         }
 
         return response()->json(['file_name' => $fileName]);
+    }
+
+    private function formatBook(Book $book): array
+    {
+        $data = $book->toArray();
+        $data['thumbnail'] = Storage::disk($this->storageDisk())->url('thumbnails/' . ($book->thumbnail ?: 'no-image.png'));
+
+        if ($book->relationLoaded('items')) {
+            $data['items'] = $book->items->map(function ($item) {
+                $itemData = $item->toArray();
+                if ($item->relationLoaded('images')) {
+                    $itemData['images'] = $item->images->map(function ($image) {
+                        $imageData = $image->toArray();
+                        $imageData['file_name'] = Storage::disk($this->storageDisk())->url('images/' . ($image->file_name ?: 'no-image.png'));
+                        return $imageData;
+                    })->toArray();
+                }
+                return $itemData;
+            })->toArray();
+        }
+
+        return $data;
     }
 
     /**

@@ -49,7 +49,7 @@ class ImageController extends BaseController
             ->limit((int)$limit)
             ->get();
 
-        return $this->customIndexResponse($result);
+        return response()->json($result->map(fn($image) => $this->formatImage($image)), 200);
     }
 
     /**
@@ -113,7 +113,7 @@ class ImageController extends BaseController
             throw $e;
         }
 
-        return $this->customStoreResponse($result);
+        return response()->json($this->formatImage($result), 200);
     }
 
     /**
@@ -139,7 +139,7 @@ class ImageController extends BaseController
     )]
     public function show(Image $image)
     {
-        return $this->customShowResponse($image);
+        return response()->json($this->formatImage($image), 200);
     }
 
     /**
@@ -189,8 +189,7 @@ class ImageController extends BaseController
         // 画像ファイル名作成
         $extension = $this->getImageExtension($imageFile);
         $fileName = Str::uuid() . '.' . $extension;
-        $oldFileName = $image->getRawOriginal('file_name');
-
+        $oldFileName = $image->file_name;
 
         try {
             // 旧画像ファイル削除
@@ -216,7 +215,7 @@ class ImageController extends BaseController
             throw $e;
         }
 
-        return $this->customUpdateResponse($image);
+        return response()->json($this->formatImage($image), 200);
     }
 
     /**
@@ -242,7 +241,7 @@ class ImageController extends BaseController
     )]
     public function destroy(Image $image)
     {
-        $fileName = $image->getRawOriginal('file_name');
+        $fileName = $image->file_name;
 
         if(Storage::disk($this->storageDisk())->exists('images/' . $fileName)) {
             // 画像ファイル削除
@@ -254,6 +253,13 @@ class ImageController extends BaseController
         // DB削除
         $image->delete();
 
-        return $this->customDestroyResponse($image);
+        return response()->json($this->formatImage($image), 200);
+    }
+
+    private function formatImage(Image $image): array
+    {
+        $data = $image->toArray();
+        $data['file_name'] = Storage::disk($this->storageDisk())->url('images/' . ($image->file_name ?: 'no-image.png'));
+        return $data;
     }
 }
