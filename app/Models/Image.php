@@ -24,6 +24,10 @@ class Image extends BaseModel
 
     public function getFileNameAttribute($value)
     {
-        return config('app.img_endpoint') . '/images/' . ($value ?: 'no-image.png');
+        $file = $value ?: 'no-image.png';
+        if (app()->environment('local')) {
+            return '/img/images/' . $file;
+        }
+        return config('app.img_endpoint') . '/images/' . $file;
     }
 }

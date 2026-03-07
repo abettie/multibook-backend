@@ -34,7 +34,11 @@ class Book extends BaseModel
 
     public function getThumbnailAttribute($value)
     {
-        return config('app.img_endpoint') . '/thumbnails/' . ($value ?: 'no-image.png');
+        $file = $value ?: 'no-image.png';
+        if (app()->environment('local')) {
+            return '/img/thumbnails/' . $file;
+        }
+        return config('app.img_endpoint') . '/thumbnails/' . $file;
     }
 
     public function user()

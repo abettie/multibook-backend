@@ -337,8 +337,8 @@ class BookController extends BaseController
         $extension = $this->getImageExtension($thumbnail);
         $fileName = Str::uuid() . '.' . $extension;
 
-        // 現在のサムネールファイル名取得
-        $oldThumbnail = $book->thumbnail;
+        // 現在のサムネールファイル名取得（生の値）
+        $oldThumbnail = $book->getRawOriginal('thumbnail');
 
         // DB更新
         $book->thumbnail = $fileName;
@@ -346,11 +346,11 @@ class BookController extends BaseController
 
         // 画像ファイルアップロード（圧縮処理を追加）
         $compressedImage = $this->processAndCompressImage($thumbnail);
-        Storage::disk('s3')->put('thumbnails/' . $fileName, $compressedImage);
+        Storage::disk($this->storageDisk())->put('thumbnails/' . $fileName, $compressedImage);
 
         // 古いサムネイルファイル削除
         if ($oldThumbnail) {
-            Storage::disk('s3')->delete('thumbnails/' . $oldThumbnail);
+            Storage::disk($this->storageDisk())->delete('thumbnails/' . $oldThumbnail);
         }
 
         return response()->json(['file_name' => $fileName]);
