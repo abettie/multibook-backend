@@ -3,6 +3,10 @@
 /public/build
 /public/hot
 /public/storage
+/public/img/images/*
+/public/img/thumbnails/*
+!/public/img/images/.gitkeep
+!/public/img/thumbnails/.gitkeep
 /storage/*.key
 /storage/pail
 /vendor
