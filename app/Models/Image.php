@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class Image extends BaseModel
 {
@@ -25,9 +26,6 @@ class Image extends BaseModel
     public function getFileNameAttribute($value)
     {
         $file = $value ?: 'no-image.png';
-        if (app()->environment('local')) {
-            return '/img/images/' . $file;
-        }
-        return config('app.img_endpoint') . '/images/' . $file;
+        return Storage::disk(image_storage_disk())->url('images/' . $file);
     }
 }

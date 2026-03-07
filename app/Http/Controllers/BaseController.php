@@ -53,14 +53,6 @@ class BaseController extends Controller
     }
 
     /**
-     * 環境に応じたストレージディスク名を返す
-     */
-    protected function storageDisk(): string
-    {
-        return app()->environment('local') ? 'local_img' : 's3';
-    }
-
-    /**
      * 画像をリサイズ・圧縮し、1MB以内に収める
      * @param \Illuminate\Http\UploadedFile $uploadedFile
      * @return string バイナリデータ
