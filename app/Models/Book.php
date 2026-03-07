@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Book extends BaseModel
 {
@@ -35,10 +36,7 @@ class Book extends BaseModel
     public function getThumbnailAttribute($value)
     {
         $file = $value ?: 'no-image.png';
-        if (app()->environment('local')) {
-            return '/img/thumbnails/' . $file;
-        }
-        return config('app.img_endpoint') . '/thumbnails/' . $file;
+        return Storage::disk(image_storage_disk())->url('thumbnails/' . $file);
     }
 
     public function user()

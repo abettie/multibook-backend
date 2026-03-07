@@ -106,7 +106,7 @@ class ImageController extends BaseController
         try {
             // 画像をリサイズ・圧縮してストレージにアップロード
             $imageData = $this->processAndCompressImage($request->file('image'));
-            Storage::disk($this->storageDisk())->put('images/' . $fileName, $imageData);
+            Storage::disk(image_storage_disk())->put('images/' . $fileName, $imageData);
         } catch (\Exception $e) {
             // エラーが発生した場合、DBからレコードを削除
             $result->delete();
@@ -194,7 +194,7 @@ class ImageController extends BaseController
 
         try {
             // 旧画像ファイル削除
-            Storage::disk($this->storageDisk())->delete('images/' . $oldFileName);
+            Storage::disk(image_storage_disk())->delete('images/' . $oldFileName);
         } catch (\Exception $e) {
             // 画像ファイルの削除に失敗した場合はログに記録し、中断
             logger()->error('画像ファイルの削除に失敗', [
@@ -207,7 +207,7 @@ class ImageController extends BaseController
         try {
             // 画像をリサイズ・圧縮してストレージにアップロード
             $imageData = $this->processAndCompressImage($imageFile);
-            Storage::disk($this->storageDisk())->put('images/' . $fileName, $imageData);
+            Storage::disk(image_storage_disk())->put('images/' . $fileName, $imageData);
             // DB更新
             $image->update(['file_name' => $fileName]);
         } catch (\Exception $e) {
@@ -244,9 +244,9 @@ class ImageController extends BaseController
     {
         $fileName = $image->getRawOriginal('file_name');
 
-        if(Storage::disk($this->storageDisk())->exists('images/' . $fileName)) {
+        if(Storage::disk(image_storage_disk())->exists('images/' . $fileName)) {
             // 画像ファイル削除
-            Storage::disk($this->storageDisk())->delete('images/' . $fileName);
+            Storage::disk(image_storage_disk())->delete('images/' . $fileName);
         } else {
             logger()->warning('画像ファイルが存在しません', ['file_name' => $fileName]);
         }

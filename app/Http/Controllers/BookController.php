@@ -346,11 +346,11 @@ class BookController extends BaseController
 
         // 画像ファイルアップロード（圧縮処理を追加）
         $compressedImage = $this->processAndCompressImage($thumbnail);
-        Storage::disk($this->storageDisk())->put('thumbnails/' . $fileName, $compressedImage);
+        Storage::disk(image_storage_disk())->put('thumbnails/' . $fileName, $compressedImage);
 
         // 古いサムネイルファイル削除
         if ($oldThumbnail) {
-            Storage::disk($this->storageDisk())->delete('thumbnails/' . $oldThumbnail);
+            Storage::disk(image_storage_disk())->delete('thumbnails/' . $oldThumbnail);
         }
 
         return response()->json(['file_name' => $fileName]);
